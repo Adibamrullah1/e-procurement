@@ -73,14 +73,26 @@ Route::middleware('auth')->group(function () {
         'show',
     ]);
 
-    Route::post('/procurements/{procurement}/send', [ProcurementController::class, 'send'])
-        ->name('procurements.send');
-    Route::post('/procurements/{procurement}/approve', [ProcurementController::class, 'approve'])
-        ->name('procurements.approve');
-    Route::post('/procurements/{procurement}/reject', [ProcurementController::class, 'reject'])
-        ->name('procurements.reject');
-    Route::post('/procurements/{procurement}/finalize', [ProcurementController::class, 'finalize'])
-        ->name('procurements.finalize');
+    Route::middleware('permission:procurement.send')->group(function () {
+        Route::post('/procurements/{procurement}/send', [ProcurementController::class, 'send'])
+            ->name('procurements.send');
+    });
+
+    Route::middleware('permission:procurement.approve|procurement.reject')->group(function () {
+        Route::post('/procurements/{procurement}/approve', [ProcurementController::class, 'approve'])
+            ->name('procurements.approve');
+        Route::post('/procurements/{procurement}/reject', [ProcurementController::class, 'reject'])
+            ->name('procurements.reject');
+    });
+
+    Route::middleware('permission:procurement.finalize')->group(function () {
+        Route::post('/procurements/{procurement}/finalize', [ProcurementController::class, 'finalize'])
+            ->name('procurements.finalize');
+    });
+    Route::middleware('permission:admin_procurement')->group(function () {
+        Route::resource('categories', \App\Http\Controllers\CategoryController::class)->except(['create', 'show', 'edit']);
+        Route::resource('vendors', \App\Http\Controllers\VendorController::class)->except(['create', 'show', 'edit']);
+    });
 });
 
 require __DIR__ . '/auth.php';

@@ -71,24 +71,25 @@ class Procurement extends Model implements AuditableContract
         return $this->hasMany(ProcurementItem::class);
     }
 
-    /**
-     * Generate unique procurement code.
-     */
-    public static function generateCode(): string
+    protected static function booted(): void
     {
-        $prefix = 'PR';
-        $date = now()->format('Ymd');
-        $lastProcurement = static::withTrashed()
-            ->where('code', 'like', "{$prefix}-{$date}-%")
-            ->orderByDesc('code')
-            ->first();
+        static::creating(function (Procurement $procurement) {
+            if (empty($procurement->code)) {
+                $prefix = 'PR';
+                $date = now()->format('Ymd');
+                $lastProcurement = static::withTrashed()
+                    ->where('code', 'like', "{$prefix}-{$date}-%")
+                    ->orderByDesc('code')
+                    ->first();
 
-        $sequence = 1;
-        if ($lastProcurement) {
-            $lastSequence = (int) substr($lastProcurement->code, -4);
-            $sequence = $lastSequence + 1;
-        }
+                $sequence = 1;
+                if ($lastProcurement) {
+                    $lastSequence = (int) substr($lastProcurement->code, -4);
+                    $sequence = $lastSequence + 1;
+                }
 
-        return sprintf('%s-%s-%04d', $prefix, $date, $sequence);
+                $procurement->code = sprintf('%s-%s-%04d', $prefix, $date, $sequence);
+            }
+        });
     }
 }

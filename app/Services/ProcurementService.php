@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\ProcurementStatus;
+use App\Exceptions\InvalidProcurementStatusException;
 use App\Models\Procurement;
 use App\Models\ProcurementItem;
 use Illuminate\Support\Facades\DB;
@@ -18,16 +19,15 @@ class ProcurementService
      *     title: string,
      *     category_id: int,
      *     vendor_id: int|null,
-     *     user_id: int,
+     *     user_id: int, // Note: we'll ignore this from array and use the param
      *     items: array<int, array{item_name: string, quantity: int, unit_price: float}>
      * }  $data
      */
-    public function createRequest(array $data): Procurement
+    public function createRequest(array $data, int $userId): Procurement
     {
-        return DB::transaction(function () use ($data): Procurement {
+        return DB::transaction(function () use ($data, $userId): Procurement {
             $procurement = Procurement::create([
-                'code' => Procurement::generateCode(),
-                'user_id' => $data['user_id'],
+                'user_id' => $userId,
                 'category_id' => $data['category_id'],
                 'vendor_id' => $data['vendor_id'] ?? null,
                 'title' => $data['title'],
@@ -69,11 +69,11 @@ class ProcurementService
 
     /**
      * Process approval/rejection by Finance (SENDING -> APPROVED/REJECTED).
-     *
-     * @param  'approve'|'reject'  $action
      */
-    public function processApproval(Procurement $procurement, string $action, ?string $notes = null): Procurement
+    public function handleApproval(int $id, string $action, ?string $notes = null): Procurement
     {
+        $procurement = Procurement::findOrFail($id);
+
         $targetStatus = $action === 'approve'
             ? ProcurementStatus::APPROVED
             : ProcurementStatus::REJECTED;
@@ -95,8 +95,10 @@ class ProcurementService
     /**
      * Finalize procurement (APPROVED -> COMPLETED).
      */
-    public function finalizeRequest(Procurement $procurement): Procurement
+    public function completeRequest(int $id): Procurement
     {
+        $procurement = Procurement::findOrFail($id);
+
         $this->assertTransition($procurement, ProcurementStatus::COMPLETED);
 
         $procurement->update(['status' => ProcurementStatus::COMPLETED]);
@@ -125,7 +127,7 @@ class ProcurementService
     private function assertTransition(Procurement $procurement, ProcurementStatus $targetStatus): void
     {
         if (!$procurement->status->canTransitionTo($targetStatus)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidProcurementStatusException(
                 sprintf(
                     'Tidak dapat mengubah status dari "%s" ke "%s".',
                     $procurement->status->label(),

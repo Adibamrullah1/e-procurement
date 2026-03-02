@@ -1,3 +1,4 @@
+import '@fontsource/inter';
 import '../css/app.css';
 import './bootstrap';
 
@@ -20,6 +21,6 @@ createInertiaApp({
         root.render(<App {...props} />);
     },
     progress: {
-        color: '#4B5563',
+        color: '#14b8a6', // brand-500
     },
 });

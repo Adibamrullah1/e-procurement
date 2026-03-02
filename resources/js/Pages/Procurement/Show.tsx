@@ -7,6 +7,7 @@ import { PageProps } from '@/types';
 import { Procurement } from '@/types/procurement';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import StatusBadge from '@/Components/StatusBadge';
 
 interface Props extends PageProps {
     procurement: { data: Procurement };
@@ -24,17 +25,6 @@ export default function Show({ procurement: { data: info } }: Props) {
         notes: '',
     });
 
-    const getStatusBadgeClass = (color: string) => {
-        const baseClasses = 'px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full';
-        const colorMap: Record<string, string> = {
-            'gray': 'bg-gray-100 text-gray-800',
-            'yellow': 'bg-yellow-100 text-yellow-800',
-            'green': 'bg-green-100 text-green-800',
-            'red': 'bg-red-100 text-red-800',
-            'blue': 'bg-blue-100 text-blue-800',
-        };
-        return `${baseClasses} ${colorMap[color] || colorMap['gray']}`;
-    };
 
     const sendForApproval = () => {
         post(route('procurements.send', info.id));
@@ -87,9 +77,11 @@ export default function Show({ procurement: { data: info } }: Props) {
                                 <p className="text-sm text-gray-500 mt-1">Diajukan oleh: <span className="font-semibold">{info.user.name}</span> pada {info.created_at}</p>
                             </div>
                             <div className="mt-4 md:mt-0 flex flex-col items-end">
-                                <span className={getStatusBadgeClass(info.status_color)}>
-                                    {info.status_label}
-                                </span>
+                                <StatusBadge
+                                    status={info.status}
+                                    label={info.status_label}
+                                    color={info.status_color}
+                                />
                                 <p className="text-2xl font-black text-indigo-700 mt-2">
                                     Rp {Number(info.total_amount).toLocaleString('id-ID')}
                                 </p>

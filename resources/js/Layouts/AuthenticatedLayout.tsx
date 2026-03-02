@@ -15,8 +15,8 @@ export default function Authenticated({
         useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-white">
+        <div className="min-h-screen bg-surface-50">
+            <nav className="sticky top-0 z-50 border-b border-gray-100/50 bg-white/70 backdrop-blur-lg transition-all duration-300">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
@@ -39,6 +39,22 @@ export default function Authenticated({
                                 >
                                     Pengadaan
                                 </NavLink>
+                                {user.roles?.[0]?.name === 'admin_procurement' && (
+                                    <>
+                                        <NavLink
+                                            href={route('categories.index')}
+                                            active={route().current('categories.*')}
+                                        >
+                                            Master Kategori
+                                        </NavLink>
+                                        <NavLink
+                                            href={route('vendors.index')}
+                                            active={route().current('vendors.*')}
+                                        >
+                                            Master Vendor
+                                        </NavLink>
+                                    </>
+                                )}
                             </div>
                         </div>
 
@@ -97,7 +113,7 @@ export default function Authenticated({
                                 className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
                             >
                                 <svg
-                                    className="h-6 w-6"
+                                    className="h-6 w-6 transform transition-transform duration-200"
                                     stroke="currentColor"
                                     fill="none"
                                     viewBox="0 0 24 24"
@@ -149,6 +165,22 @@ export default function Authenticated({
                         >
                             Pengadaan
                         </ResponsiveNavLink>
+                        {user.roles?.[0]?.name === 'admin_procurement' && (
+                            <>
+                                <ResponsiveNavLink
+                                    href={route('categories.index')}
+                                    active={route().current('categories.*')}
+                                >
+                                    Master Kategori
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('vendors.index')}
+                                    active={route().current('vendors.*')}
+                                >
+                                    Master Vendor
+                                </ResponsiveNavLink>
+                            </>
+                        )}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">
@@ -178,7 +210,7 @@ export default function Authenticated({
             </nav>
 
             {header && (
-                <header className="bg-white shadow">
+                <header className="bg-white/50 backdrop-blur-sm shadow-sm border-b border-gray-100">
                     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         {header}
                     </div>

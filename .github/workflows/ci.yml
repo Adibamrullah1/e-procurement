@@ -1,0 +1,71 @@
+name: Laravel CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: e_procurement_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: pdo, pdo_mysql, mbstring
+        coverage: none
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    - name: Install Composer Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+    - name: Install NPM Dependencies
+      run: npm ci
+
+    - name: Build Frontend
+      run: npm run build
+
+    - name: Prepare Laravel Application
+      run: |
+        cp .env.example .env
+        php artisan key:generate
+      env:
+        DB_CONNECTION: mysql
+        DB_DATABASE: e_procurement_test
+        DB_USERNAME: root
+        DB_PASSWORD: root
+
+    - name: Run Migrations
+      run: php artisan migrate --force
+      env:
+        DB_CONNECTION: mysql
+        DB_DATABASE: e_procurement_test
+        DB_USERNAME: root
+        DB_PASSWORD: root
+
+    - name: Execute tests (PHPUnit / Pest)
+      run: php artisan test
+      env:
+        DB_CONNECTION: mysql
+        DB_DATABASE: e_procurement_test
+        DB_USERNAME: root
+        DB_PASSWORD: root

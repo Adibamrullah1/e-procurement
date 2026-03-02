@@ -24,7 +24,31 @@ class ProcurementController extends Controller
     }
 
     /**
-     * Display procurement list.
+     * @OA\Get(
+     *      path="/procurements",
+     *      operationId="getProcurementsList",
+     *      tags={"Procurements"},
+     *      summary="Get list of procurements",
+     *      description="Returns list of procurements based on roles and filters.",
+     *      @OA\Parameter(
+     *          name="status",
+     *          in="query",
+     *          description="Filter by procurement status",
+     *          required=false,
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Parameter(
+     *          name="search",
+     *          in="query",
+     *          description="Search by code or title",
+     *          required=false,
+     *          @OA\Schema(type="string")
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation"
+     *       )
+     * )
      */
     public function index(Request $request): Response
     {
@@ -75,14 +99,36 @@ class ProcurementController extends Controller
     }
 
     /**
-     * Store a new procurement.
+     * @OA\Post(
+     *      path="/procurements",
+     *      operationId="storeProcurement",
+     *      tags={"Procurements"},
+     *      summary="Store new procurement",
+     *      description="Creates a new procurement request with items",
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *             required={"title","category_id","items"},
+     *             @OA\Property(property="title", type="string", example="New Laptop X1"),
+     *             @OA\Property(property="category_id", type="integer", example=1),
+     *             @OA\Property(property="vendor_id", type="integer", example=1),
+     *             @OA\Property(property="items", type="array", @OA\Items(
+     *                  @OA\Property(property="item_name", type="string"),
+     *                  @OA\Property(property="quantity", type="integer"),
+     *                  @OA\Property(property="unit_price", type="number")
+     *             ))
+     *          )
+     *      ),
+     *      @OA\Response(response=201, description="Successful created"),
+     *      @OA\Response(response=422, description="Validation errors")
+     * )
      */
     public function store(StoreProcurementRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['user_id'] = $request->user()->id;
+        $userId = $request->user()->id;
 
-        $procurement = $this->service->createRequest($data);
+        $procurement = $this->service->createRequest($data, $userId);
 
         return redirect()
             ->route('procurements.show', $procurement)
@@ -112,12 +158,32 @@ class ProcurementController extends Controller
     }
 
     /**
-     * Approve procurement.
+     * @OA\Post(
+     *      path="/procurements/{id}/approve",
+     *      operationId="approveProcurement",
+     *      tags={"Procurements"},
+     *      summary="Approve procurement",
+     *      description="Finance approval",
+     *      @OA\Parameter(
+     *          name="id",
+     *          description="Procurement ID",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(type="integer")
+     *      ),
+     *      @OA\RequestBody(
+     *          required=false,
+     *          @OA\JsonContent(
+     *             @OA\Property(property="notes", type="string", example="Disetujui. Sesuai budget.")
+     *          )
+     *      ),
+     *      @OA\Response(response=302, description="Redirect back")
+     * )
      */
     public function approve(Request $request, Procurement $procurement): RedirectResponse
     {
-        $this->service->processApproval(
-            $procurement,
+        $this->service->handleApproval(
+            $procurement->id,
             'approve',
             $request->input('notes')
         );
@@ -126,7 +192,28 @@ class ProcurementController extends Controller
     }
 
     /**
-     * Reject procurement.
+     * @OA\Post(
+     *      path="/procurements/{id}/reject",
+     *      operationId="rejectProcurement",
+     *      tags={"Procurements"},
+     *      summary="Reject procurement",
+     *      description="Finance rejection (requires notes)",
+     *      @OA\Parameter(
+     *          name="id",
+     *          description="Procurement ID",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(type="integer")
+     *      ),
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *             required={"notes"},
+     *             @OA\Property(property="notes", type="string", example="Budget tidak cukup.")
+     *          )
+     *      ),
+     *      @OA\Response(response=302, description="Redirect back")
+     * )
      */
     public function reject(Request $request, Procurement $procurement): RedirectResponse
     {
@@ -136,8 +223,8 @@ class ProcurementController extends Controller
             'notes.required' => 'Catatan wajib diisi saat menolak pengadaan.',
         ]);
 
-        $this->service->processApproval(
-            $procurement,
+        $this->service->handleApproval(
+            $procurement->id,
             'reject',
             $request->input('notes')
         );
@@ -150,7 +237,7 @@ class ProcurementController extends Controller
      */
     public function finalize(Procurement $procurement): RedirectResponse
     {
-        $this->service->finalizeRequest($procurement);
+        $this->service->completeRequest($procurement->id);
 
         return back()->with('success', 'Pengadaan berhasil diselesaikan.');
     }

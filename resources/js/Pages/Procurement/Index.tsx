@@ -3,6 +3,8 @@ import { PageProps } from '@/types';
 import { Procurement } from '@/types/procurement';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import StatusBadge from '@/Components/StatusBadge';
+import { Plus, Search, Eye, Filter } from 'lucide-react';
 
 interface Props extends PageProps {
     procurements: {
@@ -38,53 +40,41 @@ export default function Index({ procurements, filters, statuses }: Props) {
         );
     };
 
-    const getStatusBadgeClass = (color: string) => {
-        const baseClasses = 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full';
-        const colorMap: Record<string, string> = {
-            'gray': 'bg-gray-100 text-gray-800',
-            'yellow': 'bg-yellow-100 text-yellow-800',
-            'green': 'bg-green-100 text-green-800',
-            'red': 'bg-red-100 text-red-800',
-            'blue': 'bg-blue-100 text-blue-800',
-        };
-        return `${baseClasses} ${colorMap[color] || colorMap['gray']}`;
-    };
+
 
     return (
         <AuthenticatedLayout
             header={
                 <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    <h2 className="text-2xl font-bold leading-tight text-gray-800 tracking-tight">
                         Daftar Pengadaan
                     </h2>
                     <Link
                         href={route('procurements.create')}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md shadow transition duration-150 ease-in-out"
+                        className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 px-5 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
                     >
-                        + Buat Pengadaan
+                        <Plus className="w-5 h-5" /> Buat Pengadaan
                     </Link>
                 </div>
             }
         >
             <Head title="Daftar Pengadaan" />
 
-            <div className="py-12">
+            <div className="py-12 animate-fade-in">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
 
                     {/* Filters Context */}
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-                        <div className="w-full sm:w-1/3">
+                    <div className="bg-white/80 backdrop-blur-md p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 flex flex-col lg:flex-row justify-between items-center gap-4">
+                        <div className="w-full lg:w-1/3">
                             <form onSubmit={handleSearch}>
                                 <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                                        </svg>
+                                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                        <Search className="h-5 w-5 text-gray-400" />
                                     </div>
                                     <input
                                         type="text"
-                                        placeholder="Cari kode atau judul..."
-                                        className="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        placeholder="Cari kode atau judul pengadaan..."
+                                        className="pl-11 block w-full border-gray-200 bg-gray-50 rounded-xl focus:ring-brand-500 focus:border-brand-500 sm:text-sm transition-colors py-2.5 text-gray-700"
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                     />
@@ -92,10 +82,13 @@ export default function Index({ procurements, filters, statuses }: Props) {
                             </form>
                         </div>
 
-                        <div className="w-full sm:w-auto flex space-x-2 overflow-x-auto pb-1">
+                        <div className="w-full lg:w-auto flex flex-wrap items-center gap-2">
+                            <div className="flex items-center gap-2 text-sm text-gray-500 mr-2">
+                                <Filter className="w-4 h-4" /> Filter Status:
+                            </div>
                             <button
                                 onClick={() => handleStatusFilter('')}
-                                className={`px-4 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-colors ${status === '' ? 'bg-indigo-100 text-indigo-800' : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                                className={`px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-200 shadow-sm ${status === '' ? 'bg-brand-100 text-brand-800 border-none scale-105' : 'bg-white border text-gray-600 hover:bg-gray-50'}`}
                             >
                                 Semua
                             </button>
@@ -103,7 +96,7 @@ export default function Index({ procurements, filters, statuses }: Props) {
                                 <button
                                     key={s.value}
                                     onClick={() => handleStatusFilter(s.value)}
-                                    className={`px-4 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-colors ${status === s.value ? `bg-${s.color}-100 text-${s.color}-800 border-none` : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                                    className={`px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-all duration-200 shadow-sm ${status === s.value ? `bg-${s.color}-100 text-${s.color}-800 border-none scale-105` : 'bg-white border text-gray-600 hover:bg-gray-50'}`}
                                 >
                                     {s.label}
                                 </button>
@@ -112,42 +105,42 @@ export default function Index({ procurements, filters, statuses }: Props) {
                     </div>
 
                     {/* Table */}
-                    <div className="bg-white shadow-sm sm:rounded-lg overflow-hidden border border-gray-200">
+                    <div className="bg-white/90 backdrop-blur-xl shadow-md sm:rounded-2xl overflow-hidden border border-gray-100">
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
+                            <table className="min-w-full divide-y divide-gray-100">
+                                <thead className="bg-surface-50/50">
                                     <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                                             Kode / Judul
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                                             Kategori / Vendor
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                                             Pemohon
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                                             Status
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th scope="col" className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
                                             Total Biaya
                                         </th>
-                                        <th scope="col" className="relative px-6 py-3">
+                                        <th scope="col" className="relative px-6 py-4">
                                             <span className="sr-only">Aksi</span>
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-white divide-y divide-gray-50">
                                     {procurements.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-12 text-center">
-                                                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                                </svg>
-                                                <h3 className="mt-2 text-sm font-medium text-gray-900">Tidak ada pengadaan</h3>
-                                                <p className="mt-1 text-sm text-gray-500">
-                                                    Belum ada data atau tidak ada yang cocok dengan pencarian.
-                                                </p>
+                                            <td colSpan={6} className="px-6 py-16 text-center">
+                                                <div className="flex flex-col items-center justify-center text-gray-400">
+                                                    <Search className="h-12 w-12 mb-3 opacity-20" />
+                                                    <h3 className="text-base font-medium text-gray-900">Tidak ada pengadaan</h3>
+                                                    <p className="mt-1 text-sm text-gray-500">
+                                                        Belum ada data atau tidak ada yang cocok dengan pencarian.
+                                                    </p>
+                                                </div>
                                             </td>
                                         </tr>
                                     ) : (
@@ -176,9 +169,11 @@ export default function Index({ procurements, filters, statuses }: Props) {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={getStatusBadgeClass(procurement.status_color)}>
-                                                        {procurement.status_label}
-                                                    </span>
+                                                    <StatusBadge
+                                                        status={procurement.status}
+                                                        label={procurement.status_label}
+                                                        color={procurement.status_color}
+                                                    />
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900">
                                                     Rp {Number(procurement.total_amount).toLocaleString('id-ID')}
@@ -186,9 +181,9 @@ export default function Index({ procurements, filters, statuses }: Props) {
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <Link
                                                         href={route('procurements.show', procurement.id)}
-                                                        className="text-indigo-600 hover:text-indigo-900 font-semibold"
+                                                        className="inline-flex items-center gap-1.5 text-brand-600 hover:text-brand-900 font-semibold bg-brand-50 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors"
                                                     >
-                                                        Detail &rarr;
+                                                        <Eye className="w-4 h-4" /> Detail
                                                     </Link>
                                                 </td>
                                             </tr>
@@ -200,16 +195,16 @@ export default function Index({ procurements, filters, statuses }: Props) {
 
                         {/* Pagination */}
                         {procurements.last_page > 1 && (
-                            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-                                <span className="text-sm text-gray-700">
+                            <div className="px-6 py-4 border-t border-gray-100 bg-surface-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <span className="text-sm text-gray-500 font-medium">
                                     Menampilkan {procurements.data.length} dari {procurements.total} data
                                 </span>
-                                <div className="flex space-x-1 border rounded-md overflow-hidden bg-white">
+                                <div className="flex space-x-1 p-1 bg-white border border-gray-200 rounded-xl shadow-sm">
                                     {procurements.links.map((link, i) => (
                                         <Link
                                             key={i}
                                             href={link.url || '#'}
-                                            className={`px-3 py-1 text-sm ${link.active ? 'bg-indigo-50 text-indigo-600 font-bold border-indigo-200' : 'text-gray-500 hover:bg-gray-50'} ${!link.url ? 'opacity-50 cursor-not-allowed' : ''} border-x border-gray-200 first:border-l-0 last:border-r-0`}
+                                            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${link.active ? 'bg-brand-50 text-brand-600' : 'text-gray-500 hover:bg-gray-50'} ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
                                             preserveState={true}
                                         />
